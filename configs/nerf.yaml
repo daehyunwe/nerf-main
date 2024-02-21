@@ -1,0 +1,57 @@
+nerf_type: mip
+
+vanila:
+  dataset:
+    scene_name: lego
+
+  trainer:
+    device_ids: [0, 1]
+    batch_size: 4608
+    max_iter: 100000
+    num_cameras_each_iter: 50
+    initial_lr: 0.0005
+    final_lr: 0.00005
+    coarse_fine_loss_lambda: 1.0
+    validate_for_every: 10
+    save_ckpt_for_every: 10
+
+  renderer:
+    num_coarse_samples: 64
+    num_fine_samples: 128
+    near_dist: 2.0
+    far_dist: 6.0
+    bounding_volume_size: 1.5
+    weight_filtering_alpha: null
+    render_type: albedo
+
+  encoder:
+    spatial_encoding_l: 16
+    directional_encoding_l: 4
+
+mip:
+  dataset:
+    scene_name: lego
+  
+  trainer:
+    device_ids: [0, 1]
+    batch_size: 4608
+    max_iter: 100000
+    num_cameras_each_iter: 50
+    initial_lr: 0.0005
+    final_lr: 0.000005
+    coarse_fine_loss_lambda: 0.1
+    validate_for_every: 10
+    save_ckpt_for_every: 10
+
+  renderer:
+    num_coarse_samples: 128
+    num_fine_samples: 128
+    near_dist: 2.0
+    far_dist: 6.0
+    bounding_volume_size: 1.5
+    weight_filtering_alpha: 0.01
+    render_type: albedo
+
+  encoder:
+    spatial_encoding_l: 16
+    directional_encoding_l: 4

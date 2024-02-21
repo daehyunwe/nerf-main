@@ -1,0 +1,10 @@
+# Compiled files
+__pycache__/
+*.py[cod]
+
+# Large files
+data/
+log/
+
+# Except
+!data/placeholder
