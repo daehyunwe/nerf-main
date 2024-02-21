@@ -5,10 +5,9 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import torch.utils.data as data
-import torchvision.io as io
+import imageio.v3 as iio
 
 import src.graphics.camera as cam
-import src.graphics.world as wld
 import src.network.network as net
 import src.renderer.renderer as rend
 import utils.blender_dataset as bldr
@@ -181,8 +180,8 @@ def _validate_one_epoch(
     nerf_type: str,  # configs
     render_type: str,
     save_images: bool,
+    batch_size: int = 1024,
 ) -> float:
-    world = wld.World()
     avg_loss = 0.0
 
     for i, batch in enumerate(val_loader):
@@ -201,13 +200,11 @@ def _validate_one_epoch(
             val_dataset.near_dist,
             val_dataset.far_dist,
         )
-        world.add_camera(camera)
 
         with torch.no_grad():
             rendered_img = rend.render_image(
                 model,  # input
-                world,
-                i,
+                camera,
                 num_coarse_samples,  # hyperparameters
                 num_fine_samples,
                 spatial_encoding_l,
@@ -216,6 +213,7 @@ def _validate_one_epoch(
                 bounding_volume_size,
                 nerf_type,  # conifgs
                 render_type,
+                batch_size,
             )
 
             # compute loss
@@ -238,18 +236,16 @@ def _validate_one_epoch(
             if save_images:
                 (log_path / f"{str(epoch).zfill(6)}").mkdir(exist_ok=True)
                 (log_path / "val_originals").mkdir(exist_ok=True)
-                rendered_img = (255.0 * rendered_img).round().to(torch.uint8).to("cpu")
-                img = (255.0 * img).round().to(torch.uint8).to("cpu")
+                rendered_img = (255.0 * rendered_img).round().to(torch.uint8).cpu().numpy()
+                img = (255.0 * img).round().to(torch.uint8).cpu().numpy()
 
-                io.write_png(
-                    torch.permute(rendered_img, (2, 0, 1)),
-                    (
-                        log_path / f"{str(epoch).zfill(6)}" / f"{str(i).zfill(6)}.png"
-                    ).as_posix(),
+                iio.imwrite(
+                    log_path / f"{str(epoch).zfill(6)}" / f"{str(i).zfill(6)}.png",
+                    rendered_img,
                 )
-                io.write_png(
-                    torch.permute(img, (2, 0, 1)),
-                    (log_path / "val_originals" / f"{str(i).zfill(6)}.png").as_posix(),
+                iio.imwrite(
+                    log_path / "val_originals" / f"{str(i).zfill(6)}.png",
+                    img,
                 )
 
     avg_loss /= 10
@@ -347,7 +343,7 @@ def train(
             nerf_type=nerf_type,  # configs
             render_type=render_type,
         )
-
+        
         # validate
         if (epoch + 1) % validate_for_every == 0:
             val_loss = _validate_one_epoch(
@@ -366,6 +362,7 @@ def train(
                 nerf_type=nerf_type,  # configs
                 render_type=render_type,
                 save_images=True,
+                batch_size=batch_size,
             )
         else:
             val_loss = None

@@ -20,5 +20,12 @@ This is a pytorch implementation of NeRF models in the following list.
     unzip data/lego.zip -d data/
     ```
 4. Choose the *nerf_type* in **configs/nerf.yaml**, either *vanila* or *mip*.
-5. Run **main.py**
-6. You can check the rendered images and losses in **log/**
+5. Start training with
+    ```
+    python main.py -t
+    ```
+6. Generate gif with
+    ```
+    python main.py -r
+    ```
+7. You can check the results in **log/**.

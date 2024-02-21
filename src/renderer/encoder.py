@@ -53,7 +53,8 @@ def integrated_positional_encode(
         directions**2
     ).view(M, 1, 3).expand(-1, NS, -1) + variance_r.view(M, NS, 1).expand(-1, -1, 3) * (
         torch.ones_like(directions)
-        - directions**2 / torch.sum(directions**2, dim=1, keepdim=True).expand(-1, 3)
+        - directions**2
+        / torch.sum(directions**2, dim=1, keepdim=True).expand(-1, 3)
     ).view(
         M, 1, 3
     ).expand(

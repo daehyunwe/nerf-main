@@ -1,5 +1,5 @@
-torch
-torchvision
+imageio
 matplotlib
 pyyaml
-opencv-python
+torch
+tqdm

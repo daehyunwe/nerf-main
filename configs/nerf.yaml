@@ -21,6 +21,7 @@ vanila:
     near_dist: 2.0
     far_dist: 6.0
     bounding_volume_size: 1.5
+    num_gif_frames: 300
     weight_filtering_alpha: null
     render_type: albedo
 
@@ -49,6 +50,7 @@ mip:
     near_dist: 2.0
     far_dist: 6.0
     bounding_volume_size: 1.5
+    num_gif_frames: 300
     weight_filtering_alpha: 0.01
     render_type: albedo
 

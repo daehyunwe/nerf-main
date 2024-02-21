@@ -5,33 +5,6 @@ import torch.nn as nn
 import torch.optim as optim
 
 
-def dump(log_path: Path, dump: dict):
-    """
-    Dump dictionary into log_path.
-    """
-    log_path.mkdir(exist_ok=True)
-
-    # find the newest dump file number
-    newest_dump_num = 0
-    while (log_path / f"dump_{str(newest_dump_num).zfill(4)}.pth").exists():
-        newest_dump_num += 1
-    dump_path = log_path / f"dump_{str(newest_dump_num).zfill(4)}.pth"
-    dump_txt_path = log_path / f"dump_{str(newest_dump_num).zfill(4)}.txt"
-
-    torch.save(dump, dump_path)
-    with open(dump_txt_path.as_posix(), "a") as f:
-        print(dump, file=f)
-
-
-def load_dump(log_path: Path, dump_num: int):
-    """
-    Load dump and return the dictionary.
-    """
-    dump_path = log_path / f"dump_{str(dump_num).zfill(4)}.pth"
-
-    return torch.load(dump_path, map_location="cpu")
-
-
 def save_loss(
     log_path: Path,
     epoch: int,
@@ -86,8 +59,8 @@ def save_checkpoint(
 def load_checkpoint(
     log_path: Path,
     model: dict,
-    optimizer: optim.Optimizer,
-    scheduler: optim.lr_scheduler,
+    optimizer: optim.Optimizer | None = None,
+    scheduler: optim.lr_scheduler = None,
 ) -> int:
     """
     Loads model, optimizer, and scheduler states.
@@ -112,8 +85,10 @@ def load_checkpoint(
     ckpt = torch.load(ckpt_path, map_location="cpu")
 
     start_epoch = ckpt["epoch"] + 1
-    optimizer.load_state_dict(ckpt["optimizer_state_dict"])
-    scheduler.load_state_dict(ckpt["scheduler_state_dict"])
+    if not optimizer is None:
+        optimizer.load_state_dict(ckpt["optimizer_state_dict"])
+    if not scheduler is None:
+        scheduler.load_state_dict(ckpt["scheduler_state_dict"])
     for key in model:
         model[key].load_state_dict(ckpt[key])
         model[key].to(torch.cuda.current_device())

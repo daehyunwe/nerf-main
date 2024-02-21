@@ -5,7 +5,6 @@ import torch.nn.functional as F
 import numpy as np
 
 import src.graphics.camera as cam
-import src.graphics.world as wld
 import src.renderer.encoder as enc
 import src.renderer.sampler as sam
 
@@ -443,8 +442,7 @@ def render_pixels(
 
 def render_image(
     model: dict,  # input
-    world: wld.World,
-    camera_idx: int,
+    camera: cam.Camera,
     num_coarse_samples: int,  # hyperparameters
     num_fine_samples: int,
     spatial_encoding_l: int,
@@ -453,14 +451,14 @@ def render_image(
     bounding_volume_size: float,
     nerf_type: str = "vanila",  # conifgs
     render_type: str = "albedo",
+    batch_size: int = 1024,
 ) -> torch.Tensor:
     """
     Render the full image seen from the given camera.
 
     Input
         model: dictionary of nerf networks.
-        world: cameras and light sources.
-        camera_idx: index of the camera in cameras list.
+        camera: camera taking the picture.
 
         num_coarse_samples: number of coarse samples.
         num_fine_samples: number of fine samples.
@@ -471,26 +469,28 @@ def render_image(
 
         nerf_type: str, "vanila" or "mip" or "dreamfusion".
         render_type: str, "shaded" or "albedo" or "textureless".
+        batch_size: number of pixels to render in one iteration.
 
     Output
         img: size=[H,W,3]
     """
 
-    camera: cam.Camera = world.cameras[camera_idx]
     H, W = camera.img_size
     x, y = torch.meshgrid(torch.arange(W), torch.arange(H), indexing="xy")
     pixel_density = camera.pixel_density
     pixel_coordinates = torch.stack([x, y], dim=2).view(H * W, 2)
     ray_origins = camera.position  # [3]
-    ray_directions = camera.pixels_to_ray_directions(pixel_coordinates).view(
-        H, W, 3
-    )  # [H, W, 3]
+    ray_directions = (
+        camera.pixels_to_ray_directions(pixel_coordinates).view(H, W, 3).view(H * W, 3)
+    )  # [H * W, 3]
+
     color_list = []
-    for i in range(H):
+    num_pixels = H * W
+    for i in range(num_pixels // batch_size):
         _, color = render_pixels(
             model,
-            ray_origins.view(1, 3).expand(W, -1),
-            ray_directions[i],
+            ray_origins.view(1, 3).expand(batch_size, -1),
+            ray_directions[i * batch_size : (i + 1) * batch_size],
             pixel_density,
             num_coarse_samples,
             num_fine_samples,
@@ -504,5 +504,26 @@ def render_image(
             render_type=render_type,
         )
         color_list.append(color)
+
+    num_remaining_pixels = num_pixels % batch_size
+    if num_remaining_pixels > 0:
+        _, color = render_pixels(
+            model,
+            ray_origins.view(1, 3).expand(num_remaining_pixels, -1),
+            ray_directions[-num_remaining_pixels:],
+            pixel_density,
+            num_coarse_samples,
+            num_fine_samples,
+            spatial_encoding_l,
+            directional_encoding_l,
+            camera.near_dist,
+            camera.far_dist,
+            bounding_volume_size,
+            weight_filtering_alpha,
+            nerf_type=nerf_type,
+            render_type=render_type,
+        )
+        color_list.append(color)
+
     img = torch.cat(color_list, dim=0)
     return img.view(H, W, 3)

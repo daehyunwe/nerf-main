@@ -2,7 +2,7 @@ from pathlib import Path
 from typing import Tuple
 import json
 
-import cv2
+import imageio.v3 as iio
 import numpy as np
 import torch
 import torch.utils.data as data
@@ -32,8 +32,8 @@ def _load_blender_dataset(
     poses = []
 
     for frame in poses_dict["frames"]:
-        img = cv2.imread((scene_path / f"{frame['file_path']}.png").as_posix())
-        img = torch.tensor(cv2.cvtColor(img, cv2.COLOR_BGR2RGB))
+        img = iio.imread(scene_path / f"{frame['file_path']}.png")
+        img = torch.tensor(img)[:,:,:-1]
         pose = torch.linalg.solve(
             torch.tensor(frame["transform_matrix"]), torch.eye(4)
         )[:3, :]
@@ -69,8 +69,8 @@ class BlenderDataset(data.Dataset):
         data_path: Path,
         scene_name: str,
         data_type: str,
-        near_dist: float,
-        far_dist: float,
+        near_dist: float = 2.0,
+        far_dist: float = 6.0,
     ):
         super().__init__()
 
