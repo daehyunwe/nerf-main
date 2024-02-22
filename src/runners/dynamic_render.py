@@ -188,6 +188,6 @@ def dynamic_render(
         log_path / "dynamic" / "dynamic.gif",
         imgs,
         plugin="pillow",
-        duration=1 / gif_fps,
+        duration=1000 / gif_fps,
         loop=0,
     )
