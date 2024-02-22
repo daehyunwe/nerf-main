@@ -9,20 +9,20 @@ def save_loss(
     log_path: Path,
     epoch: int,
     train_loss: float,
-    val_loss: float,
+    val_loss: float | None,
 ):
     """
     Append loss to the loss text file.
     """
     log_path.mkdir(exist_ok=True)
 
-    loss_txt_path = log_path / f"loss.txt"
+    loss_txt_path = log_path / "loss.txt"
 
     if val_loss is None:
-        with open(loss_txt_path.as_posix(), "a") as f:
+        with open(loss_txt_path.as_posix(), "a", encoding="UTF-8") as f:
             print(f"{epoch}, {train_loss}", file=f)
     else:
-        with open(loss_txt_path.as_posix(), "a") as f:
+        with open(loss_txt_path.as_posix(), "a", encoding="UTF-8") as f:
             print(f"{epoch}, {train_loss}, {val_loss}", file=f)
 
 
@@ -31,7 +31,7 @@ def save_checkpoint(
     epoch: int,
     model: dict,
     optimizer: optim.Optimizer,
-    scheduler: optim.lr_scheduler,
+    scheduler,
 ):
     """
     Save current epoch, model, optimizer, and scheduler state into log_path.
@@ -60,7 +60,7 @@ def load_checkpoint(
     log_path: Path,
     model: dict,
     optimizer: optim.Optimizer | None = None,
-    scheduler: optim.lr_scheduler = None,
+    scheduler=None,
 ) -> int:
     """
     Loads model, optimizer, and scheduler states.

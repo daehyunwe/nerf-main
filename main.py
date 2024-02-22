@@ -8,10 +8,10 @@ import src.runners.dynamic_render as render
 
 def main():
     # resolve path
-    ROOT_PATH = Path(__file__).parent
+    root_path = Path(__file__).parent
 
     # load configs
-    with (ROOT_PATH / "configs" / "nerf.yaml").open() as file:
+    with (root_path / "configs" / "nerf.yaml").open() as file:
         nerf_config = yaml.safe_load(file)
     nerf_type = nerf_config["nerf_type"]
     nerf_config = nerf_config[nerf_type]
@@ -31,8 +31,8 @@ def main():
 
     if args.train:
         train.train(
-            ROOT_PATH / "log",  # path
-            ROOT_PATH / "data",
+            root_path / "log",  # path
+            root_path / "data",
             nerf_config["dataset"]["scene_name"],
             nerf_config["trainer"]["device_ids"],  # trainer
             nerf_config["trainer"]["batch_size"],
@@ -57,8 +57,8 @@ def main():
 
     elif args.render:
         render.dynamic_render(
-            ROOT_PATH / "log",
-            ROOT_PATH / "data",
+            root_path / "log",
+            root_path / "data",
             nerf_config["dataset"]["scene_name"],
             nerf_config["trainer"]["device_ids"],
             nerf_config["renderer"]["num_coarse_samples"],

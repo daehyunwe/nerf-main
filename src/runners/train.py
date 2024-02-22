@@ -49,12 +49,11 @@ def _sample_pixel_coordinates(
 def _train_one_epoch(
     epoch: int,  # input
     max_iter: int,
-    log_path: Path,
     train_dataset: bldr.BlenderDataset,
     train_loader: data.DataLoader,
     model: dict,
     optimizer: optim.Optimizer,
-    scheduler: optim.lr_scheduler,
+    scheduler,
     batch_size: int,  # trainer hyperparameters
     num_cameras_each_iter: int,
     num_coarse_samples: int,  # renderer hyperparameters
@@ -223,9 +222,8 @@ def _validate_one_epoch(
                 rendered_img.view(-1, 3),
             )
 
-            iter_msg = f"[{i+1} / {len(val_dataset)}] "
-            epoch_msg = f"[{epoch+1} / {max_iter // len(val_dataset)}] "
-            msg = "Validation loss " + iter_msg + epoch_msg + f": {loss.item()}"
+            iter_msg = f"[{i+1} / {10}] "
+            msg = "Validation loss " + iter_msg + f": {loss.item()}"
             print(" " * len(msg), end="")
             print("\r", end="")
             print(msg, end="")
@@ -236,7 +234,9 @@ def _validate_one_epoch(
             if save_images:
                 (log_path / f"{str(epoch).zfill(6)}").mkdir(exist_ok=True)
                 (log_path / "val_originals").mkdir(exist_ok=True)
-                rendered_img = (255.0 * rendered_img).round().to(torch.uint8).cpu().numpy()
+                rendered_img = (
+                    (255.0 * rendered_img).round().to(torch.uint8).cpu().numpy()
+                )
                 img = (255.0 * img).round().to(torch.uint8).cpu().numpy()
 
                 iio.imwrite(
@@ -305,8 +305,8 @@ def train(
     else:
         raise NotImplementedError
     params = []
-    for key in model:
-        params += list(model[key].parameters())
+    for _, network in model.items():
+        params += list(network.parameters())
     optimizer = optim.Adam(params, initial_lr)
     gamma = pow(final_lr / initial_lr, 1 / max_iter)
     scheduler = optim.lr_scheduler.ExponentialLR(optimizer, gamma)
@@ -316,8 +316,10 @@ def train(
 
     # dataparallel
     if len(device_ids) > 1:
-        for key in model:
-            model[key] = nn.DataParallel(model[key], device_ids)
+        dp_model = {}
+        for name, network in model.items():
+            dp_model[name] = nn.DataParallel(network, device_ids)
+        model = dp_model
 
     # iteration
     for epoch in range(start_epoch, max_iter // len(train_dataset)):
@@ -325,7 +327,6 @@ def train(
         train_loss = _train_one_epoch(
             epoch,  # input
             max_iter,
-            log_path,
             train_dataset,
             train_loader,
             model,
@@ -343,7 +344,7 @@ def train(
             nerf_type=nerf_type,  # configs
             render_type=render_type,
         )
-        
+
         # validate
         if (epoch + 1) % validate_for_every == 0:
             val_loss = _validate_one_epoch(

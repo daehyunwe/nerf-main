@@ -61,8 +61,10 @@ def dynamic_render(
 
     # dataparallel
     if len(device_ids) > 1:
-        for key in model:
-            model[key] = nn.DataParallel(model[key], device_ids)
+        dp_model = {}
+        for name, network in model.items():
+            dp_model[name] = nn.DataParallel(network, device_ids)
+        model = dp_model
 
     # intrinsic parameters
     focal_length = train_dataset.focal_length
@@ -169,6 +171,11 @@ def dynamic_render(
 
     # create gif
     imgs = []
+    if num_gif_frames >= 100:
+        gif_duration = 10.0
+    else:
+        gif_duration = 5.0
+    gif_fps = round(num_gif_frames / gif_duration)
     for i in range(num_gif_frames // 2):
         imgs.append(
             iio.imread(log_path / "dynamic" / "images" / f"h{str(i).zfill(3)}.png")
@@ -181,6 +188,6 @@ def dynamic_render(
         log_path / "dynamic" / "dynamic.gif",
         imgs,
         plugin="pillow",
-        duration=50,
+        duration=1 / gif_fps,
         loop=0,
     )

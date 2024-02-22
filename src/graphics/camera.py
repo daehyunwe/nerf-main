@@ -1,7 +1,6 @@
 import torch
 
 import src.graphics.rules as rls
-import utils.visualizer as vis
 
 
 class Camera:
@@ -230,73 +229,3 @@ class Camera:
         """
         image_points = self.pixels_to_image(pixels)
         return self.image_points_to_ray_directions(image_points)
-
-    def plot_camera(
-        self, ax, plot_line_length, pixels_to_include_ray=None, color="b", alpha_scale=1
-    ):
-        direction = self.rotation.T @ torch.tensor([0, 0, 1], dtype=torch.float32)
-        direction = direction / torch.linalg.norm(direction).expand(3)
-
-        vis.plot_points(
-            ax, self.position.view(1, 3), color=color, alpha=0.5 * alpha_scale
-        )
-        vis.plot_points(
-            ax,
-            self.position.view(1, 3) + self.focal_length * direction.view(1, 3),
-            color=color,
-            alpha=0.5 * alpha_scale,
-        )
-        vis.plot_lines(
-            ax,
-            self.position.view(1, 3),
-            direction.view(1, 3),
-            torch.full([1, 1], plot_line_length),
-            color=color,
-            alpha=0.3 * alpha_scale,
-        )
-        vis.plot_square(
-            ax,
-            self.rotation,
-            self._translation
-            - self.focal_length * torch.tensor([0, 0, 1], dtype=torch.float32),
-            self.img_size[0] / self.pixel_density[1],
-            color=color,
-            alpha=0.2 * alpha_scale,
-        )
-        vis.plot_square(
-            ax,
-            self.rotation,
-            self._translation
-            - torch.tensor([0, 0, self.near_dist], dtype=torch.float32),
-            self.img_size[0]
-            / self.pixel_density[1]
-            * self.near_dist
-            / self.focal_length,
-            color=color,
-            alpha=0.2 * alpha_scale,
-        )
-        vis.plot_square(
-            ax,
-            self.rotation,
-            self._translation
-            - torch.tensor([0, 0, self.far_dist], dtype=torch.float32),
-            self.img_size[0]
-            / self.pixel_density[1]
-            * self.far_dist
-            / self.focal_length,
-            color=color,
-            alpha=0.2 * alpha_scale,
-        )
-        if pixels_to_include_ray != None:  # Plot camera rays
-            batch_size = pixels_to_include_ray.size(dim=0)
-            alpha = 0.5 * alpha_scale
-            for i in range(batch_size):
-                vis.plot_lines(
-                    ax,
-                    self.position.view(1, 3),
-                    self.pixels_to_ray_directions(pixels_to_include_ray[i].view(1, 2)),
-                    torch.full([1], plot_line_length),
-                    color=color,
-                    alpha=alpha,
-                )
-                alpha *= 0.5

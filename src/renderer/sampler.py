@@ -69,7 +69,6 @@ def fine_t_sampler(
         full_fine_t: size=[N, NFS]
     """
 
-    device = density.device
     N = density.size(dim=0)
     NCS = density.size(dim=1)
     NFS = num_fine_samples

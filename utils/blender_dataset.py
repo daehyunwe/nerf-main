@@ -33,7 +33,7 @@ def _load_blender_dataset(
 
     for frame in poses_dict["frames"]:
         img = iio.imread(scene_path / f"{frame['file_path']}.png")
-        img = torch.tensor(img)[:,:,:-1]
+        img = torch.tensor(img)[:, :, :-1]
         pose = torch.linalg.solve(
             torch.tensor(frame["transform_matrix"]), torch.eye(4)
         )[:3, :]

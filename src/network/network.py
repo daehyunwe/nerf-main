@@ -3,61 +3,30 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 
-class _ResidualBlock(nn.Module):
-    """ResNet block."""
-
-    def __init__(
-        self,
-        in_dim,
-        hidden_dim,
-        out_dim,
-        hidden_activation=nn.SiLU(),
-        out_activation=nn.SiLU(),
-        normalization=nn.Identity(),
-    ):
-        super().__init__()
-        assert in_dim <= out_dim
-        self.in_dim = in_dim
-        self.hidden_dim = hidden_dim
-        self.out_dim = out_dim
-        self.hidden_activation = hidden_activation
-        self.out_activation = out_activation
-        self.normalization = normalization
-
-        self._network = nn.Sequential(
-            nn.Linear(self.in_dim, self.hidden_dim),
-            self.hidden_activation,
-            nn.Linear(self.hidden_dim, self.out_dim),
-        )
-
-    def forward(self, x):
-        device = x.device
-        output = self._network(x)
-        output = output + torch.cat(
-            [x, torch.zeros([x.size(dim=0), self.out_dim - self.in_dim]).to(device)],
-            dim=1,
-        )
-        return self.normalization(self.out_activation(output))
-
-
 class _StandardBlock(nn.Module):
     """Standard fully-connected layer."""
 
     def __init__(
-        self, in_dim, out_dim, activation=nn.ReLU(), normalization=nn.Identity()
+        self,
+        in_dim: int,
+        out_dim: int,
+        activation: nn.Module | None = nn.ReLU(),
+        normalization: nn.Module | None = None,
     ):
         super().__init__()
         self.in_dim = in_dim
         self.out_dim = out_dim
         self.activation = activation
         self.normalization = normalization
-
-        self._network = nn.Sequential(
-            nn.Linear(self.in_dim, self.out_dim), self.activation, self.normalization
-        )
+        self.fc1 = nn.Linear(self.in_dim, self.out_dim)
 
     def forward(self, x):
-        return self._network(x)
+        x = self.fc1(x)
+        if not self.activation is None:
+            x = self.activation(x)
+        if not self.normalization is None:
+            x = self.normalization(x)
+        return x
 
 
 class NeRFNetwork(nn.Module):
@@ -69,8 +38,8 @@ class NeRFNetwork(nn.Module):
 
     def __init__(
         self,
-        spatial_encoding_l,
-        directional_encoding_l,
+        spatial_encoding_l: int,
+        directional_encoding_l: int,
     ):
         super().__init__()
         self.spatial_encoding_l = spatial_encoding_l
@@ -96,9 +65,7 @@ class NeRFNetwork(nn.Module):
             self._density_network2.append(
                 _StandardBlock(256, 256, activation=nn.ReLU())
             )
-        self._density_network2.append(
-            _StandardBlock(256, 257, activation=nn.Identity())
-        )
+        self._density_network2.append(_StandardBlock(256, 257, activation=None))
 
         self._color_network.append(
             _StandardBlock(

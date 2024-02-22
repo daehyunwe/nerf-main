@@ -1,5 +1,4 @@
 imageio
-matplotlib
 pyyaml
 torch
 tqdm

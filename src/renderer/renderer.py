@@ -106,7 +106,7 @@ def render_pixels(
         num_coarse_samples: number of coarse samples.
         num_fine_samples: number of fine samples.
         spatial_encoding_l: hyperparameter for controlling maximum spatial encoding frequency.
-        directional_encoding_l: hyperparameter for controlling maximum directional encoding frequency.
+        directional_encoding_l: hyperparameter controlling maximum directional encoding frequency.
         near_dist: near plane distance.
         far_dist: far plane distance.
         bounding_volume_size: size of the bounding volume.
@@ -165,7 +165,7 @@ def render_pixels(
             rays_to_render_idx = rays_to_render.nonzero()  # [N, 1]
             ray_origins_to_render = ray_origins[rays_to_render]  # [M, 3]
             ray_directions_to_render = ray_directions[rays_to_render]  # [M, 3]
-            M = rays_to_render.sum(dim=0)
+            M = int(rays_to_render.sum(dim=0))
 
             # sample coarse points
             coarse_t = sam.coarse_t_sampler(
@@ -325,7 +325,7 @@ def render_pixels(
             rays_to_render_idx = rays_to_render.nonzero()  # [N, 1]
             ray_origins_to_render = ray_origins[rays_to_render]  # [M, 3]
             ray_directions_to_render = ray_directions[rays_to_render]  # [M, 3]
-            M = rays_to_render.sum(dim=0)
+            M = int(rays_to_render.sum(dim=0))
 
             # sample coarse points
             coarse_t = sam.coarse_t_sampler(
@@ -463,7 +463,7 @@ def render_image(
         num_coarse_samples: number of coarse samples.
         num_fine_samples: number of fine samples.
         spatial_encoding_l: hyperparameter for controlling maximum spatial encoding frequency.
-        directional_encoding_l: hyperparameter for controlling maximum directional encoding frequency.
+        directional_encoding_l: hyperparameter controlling maximum directional encoding frequency.
         bounding_volume_size: size of the bounding volume.
         weight_filtering_alpha: hyperparameter from Mip-NeRF.
 
@@ -475,7 +475,7 @@ def render_image(
         img: size=[H,W,3]
     """
 
-    H, W = camera.img_size
+    H, W = int(camera.img_size[0]), int(camera.img_size[1])
     x, y = torch.meshgrid(torch.arange(W), torch.arange(H), indexing="xy")
     pixel_density = camera.pixel_density
     pixel_coordinates = torch.stack([x, y], dim=2).view(H * W, 2)

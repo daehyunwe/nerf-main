@@ -1,13 +1,13 @@
-nerf_type: mip
+nerf_type: mip  # Select NeRF type.
 
 vanila:
   dataset:
-    scene_name: lego
+    scene_name: lego  # Select scene type.
 
   trainer:
-    device_ids: [0, 1]
-    batch_size: 4608
-    max_iter: 100000
+    device_ids: [0]  # Cuda GPU ids. ex) [0, 1] for 2 GPUs.
+    batch_size: 2048  # Reduce when OOM.
+    max_iter: 50000
     num_cameras_each_iter: 50
     initial_lr: 0.0005
     final_lr: 0.00005
@@ -21,7 +21,7 @@ vanila:
     near_dist: 2.0
     far_dist: 6.0
     bounding_volume_size: 1.5
-    num_gif_frames: 300
+    num_gif_frames: 100  # 50 ~ 300 recommended.
     weight_filtering_alpha: null
     render_type: albedo
 
@@ -31,12 +31,12 @@ vanila:
 
 mip:
   dataset:
-    scene_name: lego
+    scene_name: lego  # Select scene type.
   
   trainer:
-    device_ids: [0, 1]
-    batch_size: 4608
-    max_iter: 100000
+    device_ids: [0]  # Cuda GPU ids. ex) [0, 1] for 2 GPUs.
+    batch_size: 2048  # Reduce when OOM.
+    max_iter: 50000
     num_cameras_each_iter: 50
     initial_lr: 0.0005
     final_lr: 0.000005
@@ -50,7 +50,7 @@ mip:
     near_dist: 2.0
     far_dist: 6.0
     bounding_volume_size: 1.5
-    num_gif_frames: 300
+    num_gif_frames: 50  # 50 ~ 300 recommended.
     weight_filtering_alpha: 0.01
     render_type: albedo
 

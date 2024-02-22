@@ -83,19 +83,19 @@ def integrated_positional_encode(
     return ipe_features, means
 
 
-def positional_encode(input: torch.Tensor, L: int) -> torch.Tensor:
+def positional_encode(x: torch.Tensor, L: int) -> torch.Tensor:
     """
     Refer Section 5.1 in NeRF paper.
 
     Input
-        input: size=[N, 3]
+        x: size=[N, 3]
         L: the hyperparameter for controlling maximum encoding frequency.
     Output
         pe_features: size=[N, 6*L]
     """
-    N = input.size(dim=0)
+    N = x.size(dim=0)
 
-    frequencies = input.repeat(1, L) * torch.repeat_interleave(
+    frequencies = x.repeat(1, L) * torch.repeat_interleave(
         (2 ** torch.arange(L) * np.pi).view(1, L).expand(N, -1), 3, dim=1
     )
     pe_features = torch.cat([torch.sin(frequencies), torch.cos(frequencies)], dim=1)
