@@ -32,7 +32,9 @@ def main():
     args = parser.parse_args()
 
     if not common_config["dataset"]["down_size"] is None:
-        if not (root_path / "data" / common_config["dataset"]["scene_name"]).exists:
+        if not (
+            root_path / "data" / f"{common_config['dataset']['scene_name']}_down"
+        ).exists():
             down.down_sample(
                 root_path / "data" / common_config["dataset"]["scene_name"],
                 common_config["dataset"]["down_size"],

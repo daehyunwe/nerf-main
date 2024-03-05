@@ -2,7 +2,7 @@ nerf_type: mip  # Select NeRF type.
 
 common:
   dataset:
-    scene_name: drums  # Select scene type.
+    scene_name: lego  # Select scene type.
     down_size: [400, 400]  # Use null for no downsampling.
   
   trainer:
@@ -17,7 +17,7 @@ common:
     near_dist: 2.0
     far_dist: 6.0
     bounding_volume_size: 1.5
-    num_gif_frames: 50  # 50 ~ 300 recommended.
+    num_gif_frames: 300  # 50 ~ 300 recommended.
 
 vanila:
   trainer:
