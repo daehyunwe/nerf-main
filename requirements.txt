@@ -1,4 +1,5 @@
 imageio
+opencv-python
 pyyaml
 torch
 tqdm
