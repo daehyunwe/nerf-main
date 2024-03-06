@@ -10,14 +10,14 @@ common:
     batch_size: 2048  # Reduce when OOM.
     max_iter: 50000
     num_cameras_each_iter: 50
-    validate_for_every: 10
+    validate_for_every: 20
     save_ckpt_for_every: 10
   
   renderer:
     near_dist: 2.0
     far_dist: 6.0
     bounding_volume_size: 1.5
-    num_gif_frames: 300  # 50 ~ 300 recommended.
+    num_gif_frames: 100  # 50 ~ 300 recommended.
 
 vanila:
   trainer:

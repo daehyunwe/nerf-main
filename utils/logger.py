@@ -68,10 +68,10 @@ def load_checkpoint(
     """
     if not log_path.exists():
         print("No checkpoint found. Training from scratch.")
-        return 0
+        return 1
 
     # find the newest ckpt file number
-    newest_ckpt_num = 0
+    newest_ckpt_num = 1
     for child in log_path.iterdir():
         if child.name.startswith("ckpt_") and int(child.name[5:9]) > newest_ckpt_num:
             newest_ckpt_num = int(child.name[5:9])
@@ -80,7 +80,7 @@ def load_checkpoint(
 
     if not ckpt_path.exists():
         print("No checkpoint found. Training from scratch.")
-        return 0
+        return 1
 
     ckpt = torch.load(ckpt_path, map_location="cpu")
 

@@ -1,4 +1,5 @@
 from pathlib import Path
+import time
 
 import numpy as np
 import torch
@@ -146,11 +147,9 @@ def _train_one_epoch(
         loss = coarse_fine_loss_lambda * coarse_loss + fine_loss
 
         iter_msg = f"[{i+1} / {len(train_dataset)}] "
-        epoch_msg = f"[{epoch+1} / {max_iter // len(train_dataset)}] "
-        msg = "Training loss " + iter_msg + epoch_msg + f": {loss.item()}"
-        print(" " * len(msg), end="")
-        print("\r", end="")
-        print(msg, end="")
+        epoch_msg = f"[{epoch} / {max_iter // len(train_dataset)}] "
+        msg = "Training loss " + iter_msg + epoch_msg + f": {loss.item():.6f}"
+        print("\x1b[2K\r" + msg, end="")
 
         avg_loss = avg_loss + loss.item()
 
@@ -185,6 +184,7 @@ def _validate_one_epoch(
 
     for i, batch in enumerate(val_loader):
         if i >= 10:
+            time.sleep(1)
             break
 
         img, pose = batch
@@ -223,16 +223,14 @@ def _validate_one_epoch(
             )
 
             iter_msg = f"[{i+1} / {10}] "
-            msg = "Validation loss " + iter_msg + f": {loss.item()}"
-            print(" " * len(msg), end="")
-            print("\r", end="")
-            print(msg, end="")
+            msg = "Validation loss " + iter_msg + f": {loss.item():.6f}"
+            print("\x1b[2K\r" + msg, end="")
 
             avg_loss = avg_loss + loss.item()
 
             # save image
             if save_images:
-                (log_path / f"{str(epoch).zfill(6)}").mkdir(exist_ok=True)
+                (log_path / f"{str(epoch).zfill(4)}").mkdir(exist_ok=True)
                 (log_path / "val_originals").mkdir(exist_ok=True)
                 rendered_img = (
                     (255.0 * rendered_img).round().to(torch.uint8).cpu().numpy()
@@ -240,11 +238,11 @@ def _validate_one_epoch(
                 img = (255.0 * img).round().to(torch.uint8).cpu().numpy()
 
                 iio.imwrite(
-                    log_path / f"{str(epoch).zfill(6)}" / f"{str(i).zfill(6)}.png",
+                    log_path / f"{str(epoch).zfill(4)}" / f"{str(i).zfill(2)}.png",
                     rendered_img,
                 )
                 iio.imwrite(
-                    log_path / "val_originals" / f"{str(i).zfill(6)}.png",
+                    log_path / "val_originals" / f"{str(i).zfill(2)}.png",
                     img,
                 )
 
@@ -322,7 +320,7 @@ def train(
         model = dp_model
 
     # iteration
-    for epoch in range(start_epoch, max_iter // len(train_dataset)):
+    for epoch in range(start_epoch, max_iter // len(train_dataset) + 1):
         # train
         train_loss = _train_one_epoch(
             epoch,  # input
@@ -346,7 +344,7 @@ def train(
         )
 
         # validate
-        if (epoch + 1) % validate_for_every == 0:
+        if epoch % validate_for_every == 0:
             val_loss = _validate_one_epoch(
                 epoch,  # input
                 max_iter,
@@ -369,7 +367,7 @@ def train(
             val_loss = None
 
         # save checkpoint
-        if (epoch + 1) % save_ckpt_for_every == 0:
+        if epoch % save_ckpt_for_every == 0:
             log.save_checkpoint(log_path, epoch, model, optimizer, scheduler)
 
         # save loss

@@ -31,18 +31,17 @@ def main():
     )
     args = parser.parse_args()
 
+    # down sample images
     if not common_config["dataset"]["down_size"] is None:
-        if not (
-            root_path / "data" / f"{common_config['dataset']['scene_name']}_down"
-        ).exists():
-            down.down_sample(
-                root_path / "data" / common_config["dataset"]["scene_name"],
-                common_config["dataset"]["down_size"],
-            )
+        down.down_sample(
+            root_path / "data" / common_config["dataset"]["scene_name"],
+            common_config["dataset"]["down_size"],
+        )
         scene_name = f"{common_config['dataset']['scene_name']}_down"
     else:
         scene_name = common_config["dataset"]["scene_name"]
 
+    # train
     if args.train:
         train.train(
             root_path / "log",  # path
@@ -69,6 +68,7 @@ def main():
             nerf_type=nerf_type,  # configs
         )
 
+    # dynamic render
     elif args.render:
         render.dynamic_render(
             root_path / "log",
